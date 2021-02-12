@@ -38,35 +38,20 @@ static void traversal(temp_t *t, uint32_t self_index) {
 
 int main(void) {
     
-    if (system("xz -dkc dictionary.txt.xz > .tmp.txt")) goto e;
-    FILE *f = fopen(".tmp.txt", "rb");
+    if (system("xz -dkc dictionary.txt.mapped_chars.xz > .tmp.txt.mapped_chars")) goto e;
+    FILE *f = fopen(".tmp.txt.mapped_chars", "rb");
     if (f == NULL) goto e;
     temp_t *t;
     
-    for (char s[100]; fgets(s, 100, f) != NULL;) {
+    for (;;) {
         
-        uint8_t c[100], *d = c, *D, *p = s; for (;; p++) {
-            switch (*p) {
-                case  10: goto b;
-                case  45: *d++ = 33;
-                          break;
-                case 208: ++p;
-                          if (176 <= *p && *p <= 191)
-                              *d++ = *p - 176;
-                          else goto e;
-                          break;
-                case 209: ++p;
-                          if (128 <= *p && *p <= 143)
-                              *d++ = *p - 112;
-                          else if (*p == 145) *d++ = 32;
-                          else goto e;
-                          break;
-                default : goto e;
-            }
+        uint8_t c[100], *d = c, *D;
+        for (;; d++) {
+            if (!fread(d, 1, 1, f)) goto b;
+            if (*d == 34) break;
         }
         
-    b:  t = T;
-        for (D = d, d = c; d < D; d++) {
+        for (t = T, D = d, d = c; d < D; d++) {
             if (t->first_child == NULL) {
                 t = t->first_child = T + i++;
                 t->char_code = *d;
@@ -84,7 +69,7 @@ int main(void) {
         t->is_last = 1;
     }
     
-    if (fclose(f) || system("rm .tmp.txt") ||
+b:  if (fclose(f) || system("rm .tmp.txt.mapped_chars") ||
         (f = fopen(".trie.dump", "wb")) == NULL) goto e;
     
     i = 1; if (T->first_child != NULL) traversal(T->first_child, (N[0] = i++) << 8);

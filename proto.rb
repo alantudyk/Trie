@@ -2,6 +2,17 @@
 
 require 'xz'
 
+Unmap_Chars = -> m do
+    m.each_char.map do
+        case _1.ord
+            when 0..31; _1.ord + 1072
+            when    32; 1105
+            when    33; 45
+            when    34; 10
+        end .chr(Encoding::UTF_8)
+    end * ''
+end
+
 N = Struct.new :letter, :is_last, :first_child, :next_sibling
 T = N.new
 
@@ -21,7 +32,7 @@ Insert = -> s do
     t.is_last = true
 end
 
-XZ.decompress(File.read 'dictionary.txt.xz').split.each do Insert.(_1) end
+Unmap_Chars.(XZ.decompress(File.read 'dictionary.txt.mapped_chars.xz')).split.each do Insert.(_1) end
 
 Find_Prefix = -> s do
     t = T
