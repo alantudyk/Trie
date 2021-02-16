@@ -3,13 +3,9 @@
 require 'xz'
 
 Unmap_Chars = -> m do
+    a = [*(?а..?я), ?ё, ?-, "\n"]
     m.each_char.map do
-        case _1.ord
-            when 0..31; _1.ord + 1072
-            when    32; 1105
-            when    33; 45
-            when    34; 10
-        end .chr(Encoding::UTF_8)
+        a[_1.ord]
     end * ''
 end
 
